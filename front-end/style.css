@@ -21,11 +21,79 @@ body {
     flex-direction: column;
 }
 
-h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
 }
+
+.header h1 {
+    font-size: 20px;
+    color: #333;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc; /* unknown */
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.05) inset;
+}
+.status.ok { background: #22c55e; }
+.status.bad { background: #ef4444; }
+
+.icon-btn {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.icon-btn:hover { background: #f9fafb; }
+
+.settings {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fafafa;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.settings.hidden { display: none; }
+.settings label { font-size: 12px; color: #374151; }
+.settings input {
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+.settings-actions { display: flex; gap: 8px; }
+.settings .primary {
+    background: #111827;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.settings .secondary {
+    background: #fff;
+    color: #111827;
+    border: 1px solid #d1d5db;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.hint { color: #6b7280; font-size: 12px; }
 
 .chat-container {
     border: 1px solid #e0e0e0;
@@ -55,6 +123,13 @@ h1 {
 .bot-message {
     background-color: #e0e0e0;
     align-self: flex-start;
+}
+
+.message .meta {
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
 }
 
 .input-container {

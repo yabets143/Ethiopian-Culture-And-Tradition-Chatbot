@@ -3,52 +3,116 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
     const chatContainer = document.getElementById('chat-container');
+    const statusIndicator = document.getElementById('status-indicator');
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsPanel = document.getElementById('settings-panel');
+    const apiBaseInput = document.getElementById('api-base');
+    const saveSettingsBtn = document.getElementById('save-settings');
+    const closeSettingsBtn = document.getElementById('close-settings');
 
-    const addMessage = (sender, text) => {
+    const getApiBase = () => localStorage.getItem('API_BASE') || 'http://localhost:5000';
+    const setApiBase = (url) => localStorage.setItem('API_BASE', url);
+
+    apiBaseInput.value = getApiBase();
+
+    const setBusy = (busy) => {
+        chatContainer.setAttribute('aria-busy', busy ? 'true' : 'false');
+        userInput.disabled = !!busy;
+        sendButton.disabled = !!busy;
+    };
+
+    const addMessage = (sender, text, withMeta = true) => {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message');
         messageDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
         messageDiv.textContent = text;
+        if (withMeta) {
+            const meta = document.createElement('span');
+            meta.className = 'meta';
+            meta.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(meta);
+        }
         chatContainer.appendChild(messageDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the bottom
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return messageDiv;
+    };
+
+    const setStatus = (state, title) => {
+        statusIndicator.classList.remove('ok', 'bad');
+        if (state === 'ok') statusIndicator.classList.add('ok');
+        if (state === 'bad') statusIndicator.classList.add('bad');
+        statusIndicator.title = title || '';
+    };
+
+    const checkHealth = async () => {
+        setStatus(null, 'Checking...');
+        try {
+            const res = await fetch(`${getApiBase()}/health`, { method: 'GET' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const loaded = data?.model_loaded === true;
+            setStatus('ok', loaded ? 'API OK • Model loaded' : 'API OK • Model not loaded');
+        } catch (e) {
+            setStatus('bad', 'API not reachable');
+        }
     };
 
     const sendMessage = async () => {
         const question = userInput.value.trim();
-        if (question === '') return;
+        if (!question) return;
 
         addMessage('user', question);
-        userInput.value = ''; // Clear input field
+        userInput.value = '';
 
-        // Placeholder for sending question to Flask API
-        // This part will be completed in a later subtask
+        const typing = addMessage('bot', '…');
+        setBusy(true);
         try {
-            const response = await fetch('/chat', {
+            const response = await fetch(`${getApiBase()}/chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ question: question })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question })
             });
-            const data = await response.json();
-            if (response.ok) {
-                addMessage('bot', data.response);
+            const data = await response.json().catch(() => ({}));
+            typing.remove();
+            if (response.ok && typeof data.response !== 'undefined') {
+                addMessage('bot', String(data.response));
             } else {
                 addMessage('bot', `Error: ${data.error || 'Something went wrong'}`);
             }
         } catch (error) {
-            console.error('Error sending message:', error);
-            addMessage('bot', 'Sorry, I am having trouble connecting to the server.');
+            typing.remove();
+            addMessage('bot', 'ለሰርቨሩ መገናኘት አልተቻለም። (Connection error)');
+        } finally {
+            setBusy(false);
+            checkHealth();
         }
     };
 
     sendButton.addEventListener('click', sendMessage);
-
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             sendMessage();
         }
     });
 
-    addMessage('bot', 'Hello! How can I help you today?');
+    settingsBtn.addEventListener('click', () => {
+        settingsPanel.classList.toggle('hidden');
+        settingsPanel.setAttribute('aria-hidden', settingsPanel.classList.contains('hidden') ? 'true' : 'false');
+        apiBaseInput.value = getApiBase();
+    });
+    closeSettingsBtn.addEventListener('click', () => {
+        settingsPanel.classList.add('hidden');
+        settingsPanel.setAttribute('aria-hidden', 'true');
+    });
+    saveSettingsBtn.addEventListener('click', () => {
+        const url = apiBaseInput.value.trim();
+        if (url) setApiBase(url);
+        settingsPanel.classList.add('hidden');
+        settingsPanel.setAttribute('aria-hidden', 'true');
+        checkHealth();
+    });
+
+    addMessage('bot', 'ሰላም! እንዴት ልርዳዎት እችላለሁ?');
+    checkHealth();
 });

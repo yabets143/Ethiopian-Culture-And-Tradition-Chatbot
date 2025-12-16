@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am-ET">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +9,28 @@
 </head>
 <body>
     <div class="container">
-        <h1>Amharic Chatbot Interface</h1>
-        <div id="chat-container" class="chat-container"></div>
+        <header class="header">
+            <h1>Amharic Chatbot</h1>
+            <div class="header-actions">
+                <div class="status" id="status-indicator" title="Checking..."></div>
+                <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+            </div>
+        </header>
+
+        <section id="settings-panel" class="settings hidden" aria-hidden="true">
+            <label for="api-base">API URL</label>
+            <input id="api-base" type="text" placeholder="http://localhost:5000" />
+            <div class="settings-actions">
+                <button id="save-settings" class="primary">Save</button>
+                <button id="close-settings" class="secondary">Close</button>
+            </div>
+            <small class="hint">Your Flask API should expose /health and /chat</small>
+        </section>
+
+        <div id="chat-container" class="chat-container" aria-live="polite" aria-busy="false"></div>
+
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="Type your question in Amharic...">
+            <input type="text" id="user-input" placeholder="በአማርኛ ጥያቄዎን ያስገቡ…" autocomplete="off">
             <button id="send-button">Send</button>
         </div>
     </div>
